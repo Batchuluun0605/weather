@@ -2,19 +2,49 @@ import axios from "axios";
 
 const weatherUrl = "https://api.openweathermap.org/data/2.5";
 const currentWeatherUrl = `${weatherUrl}/weather`;
+const forecastWeatherUrl = `${weatherUrl}/forecast`;
+
+export const weatherIconUrl = "https://openweathermap.org/img/wn/";
 
 const apiKey = import.meta.env.VITE_API_KEY;
+
 export const fetchWeatherByCoords = async (geoData) => {
   if (!geoData?.latitude || !geoData?.longitude) return;
 
-  const response = await axios.get(currentWeatherUrl, {
-    params: {
-      lat: geoData.latitude,
-      lon: geoData.longitude,
-      units: "metric",
-      appid: apiKey,
-    },
-  });
-  console.log(response);
-  return response;
+  const params = {
+    lat: geoData.latitude,
+    lon: geoData.longitude,
+    units: "metric",
+    appid: apiKey,
+  };
+
+  const [current, forecast] = await Promise.all([
+    axios.get(currentWeatherUrl, {
+      params,
+    }),
+    axios.get(forecastWeatherUrl, {
+      params,
+    }),
+  ]);
+  return { currentWeather: current.data, forecastWeather: forecast.data };
+};
+
+export const fetchWeatherByCity = async (searchQuery) => {
+  if (!searchQuery) return;
+
+  const params = {
+    q: searchQuery,
+    units: "metric",
+    appid: apiKey,
+  };
+
+  const [current, forecast] = await Promise.all([
+    axios.get(currentWeatherUrl, {
+      params,
+    }),
+    axios.get(forecastWeatherUrl, {
+      params,
+    }),
+  ]);
+  return { currentWeather: current.data, forecast: forecast.data };
 };
